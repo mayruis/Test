@@ -1,0 +1,295 @@
+<?php 
+
+
+	
+				$objConnect = mysql_connect("localhost","root","1234") or die("Error Connect to Database");
+				$objDB = mysql_select_db("test");
+				$slstart = "SELECT * FROM start WHERE id = '1' ";
+				$objQuery1 = mysql_query($slstart) or die ("Error Query [".$slstart."]");
+				
+				date_default_timezone_set("Asia/Bangkok");
+				
+				$objResult0 = mysql_fetch_array($objQuery1);
+				$dStart = $objResult0['start'];
+				$str = strtotime(date("M d Y ")) - (strtotime($dStart));
+				$count = floor($str/3600/24);
+				$count1 = $count + 1;
+				$status = $objResult0['status'];
+				
+				
+				
+				
+				
+						if ($status == "off"){
+				
+							echo "<script type='text/javascript'>window.location.href = \"/Dropbox/EditTest/pages/Homeadmin.php \";</script>";
+							exit();
+							
+						}
+				
+				
+						if ($status == "on"){
+							
+							$objConnect = mysql_connect("localhost","root","1234") or die("Error Connect to Database");
+							$objDB = mysql_select_db("test");
+							
+							$strSQL1 = "UPDATE start SET ";
+							$strSQL1 .="count_date = '".$count1."' ";
+							$strSQL1 .="WHERE id = '1' ";
+							
+							$objQuery = mysql_query($strSQL1);
+							
+							if(!$objQuery){
+								
+								echo "ERROR ";
+							}
+							
+					
+						}
+				
+		
+						
+		
+		
+		
+			
+	   
+							
+							
+			if ($objResult0['status'] == "on"){			
+						
+						for ($i=1;$i<=42;$i++){
+							
+							if ($i==$count1){
+						
+							
+							
+							$objConnect = mysql_connect("localhost","root","1234") or die("Error Connect to Database");
+							$objDB = mysql_select_db("test");
+							
+							$sltemperature = "SELECT * FROM temperature WHERE id = '1' ";
+							$objQuery1 = mysql_query($sltemperature) or die ("Error Query [".$sltemperature."]");
+							$objResult1 = mysql_fetch_array($objQuery1);
+							
+							$tt=$objResult1['avg_t'];
+							$hh=$objResult1['avg_h'];
+							
+			
+							
+							
+	
+							if($objQuery)
+							{
+								
+								if ($t==23){
+									
+									$Tavg_hore1 = "";
+									$Tdif_avg1  = "";
+									$Tsum_avg  = "";
+									
+									$Havg_hore1 = "";
+									$Hdif_avg1  = "";
+									$Hsum_avg  = "";
+									/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+									$objDB = mysql_select_db("test");
+									$alet10 = "SELECT * FROM temp_hour_day WHERE id = '$count1' ";
+								    $objQuery10 = mysql_query($alet10) or die ("Error Query [".$alet10."]");
+									
+ 									$rowT = mysql_fetch_array($objQuery10);
+ 	
+ 									for ($c=1;$c<=49;$c++){
+ 										
+ 										if($c<=24 && $rowT[$c]!="0"){	
+ 											$Tavg_hore = $Tavg_hore + $rowT[$c];
+ 											$Tdif_avg =  $Tdif_avg + 1;
+ 										    $Tsum_avg =  $Tavg_hore / $Tdif_avg;
+ 											
+ 										}
+ 										
+ 										elseif($c>=25 && $rowT[$c]!="0"){
+ 									
+ 											$Havg_hore = $Havg_hore + $rowT[$c];
+ 											$Hdif_avg  = $Hdif_avg + 1;
+ 										    $Hsum_avg  = $Havg_hore / $Hdif_avg;
+ 											
+ 										}
+ 										elseif($c>=48) {
+ 											
+ 											$strSQL30 = "UPDATE temp_hour_day SET ";
+ 											$strSQL30 .="avg_temp = '".$Tsum_avg."' ";
+ 											$strSQL30 .=",avg_humi = '".$Hsum_avg."' ";
+ 											$strSQL30 .="WHERE id = '".$count1."' ";
+ 											$objQuery30 = mysql_query($strSQL30);
+ 										
+ 										}
+ 		
+ 									}
+ 									
+ 							
+									
+								
+								}
+								
+								
+								$alet0 = "SELECT * FROM start WHERE id = '1' ";
+								$Queryalet = mysql_query($alet0) or die ("Error Query [".$alet0."]");
+								$Resultalet = mysql_fetch_array($Queryalet);
+								$startcompar= $Resultalet['mode'];
+								
+								
+									
+								
+								
+								if ($count1<=7){
+										
+										$objConnect = mysql_connect("localhost","root","1234") or die("Error Connect to Database");
+										$objDB = mysql_select_db("test");
+										
+										$alet1 = "SELECT temp,humidity_min,humidity_max FROM manual_temp WHERE id_time = '1' ";
+										$Queryalet1 = mysql_query($alet1) or die ("Error Query [".$alet1."]");
+										$Resultalet1 = mysql_fetch_array($Queryalet1);
+										
+										$ttemp=$Resultalet1['temp'];
+										$ttmin=$Resultalet1['humidity_min'];
+										$ttmax=$Resultalet1['humidity_max'];
+										$ttemp1 =$ttemp+0.5; //32.5
+										$ttemp2 =$ttemp-0.5; //31.5
+										
+										
+										require_once '../src/twitter.class.php';
+										
+										// ENTER HERE YOUR CREDENTIALS (see readme.txt)
+										
+										$consumerKey = '8eOKkSDG86rfxbrR07nwDJKRs';
+										$consumerSecret = '5HIY7hLLTFznrtyRx6REJ9ZhqCAlq5f18inHR5gEBJegJjFXXU';
+										$accessToken = '3947213418-5V6wZfdlksulzSU6uWt7z8suT86g9T0eH8ueeTh';
+										$accessTokenSecret = 'VQc4jUOiFHhy3vsYtmeXXvH4OnhwJj3cMdfSn3KZONvFh';
+										
+										
+										$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
+										
+									
+										
+										
+										if($tt>$ttemp1){
+											
+											if ($hh > $ttmax){
+										
+												try {
+													$tweet = $twitter->send('Temp High && Humi High'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+												
+											}
+											elseif ($hh < $ttmin){
+													
+												try {
+													$tweet = $twitter->send('Temp High && Humi Low'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+											
+											}
+											else {
+												
+												
+												try {
+													$tweet = $twitter->send('Temp High'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+											}
+										
+										}
+										
+										elseif ($tt<$ttemp2 ){
+											
+											if ($hh > $ttmax){
+											
+												
+												try {
+													$tweet = $twitter->send('Temp Low && Humi High'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+											}
+											elseif ($hh < $ttmin){
+													
+												
+												try {
+													$tweet = $twitter->send('Temp Low && Humi Low'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+													
+											}
+											else {
+											
+												
+												try {
+													$tweet = $twitter->send('Temp Low'); // you can add $imagePath as second argument
+												
+												} catch (TwitterException $e) {
+													echo 'Error: ' . $e->getMessage();
+												}
+											}
+	
+										}
+										
+										
+										elseif ($hh<$ttmin){
+
+		
+											try {
+												$tweet = $twitter->send('Humi Low'); // you can add $imagePath as second argument
+											
+											} catch (TwitterException $e) {
+												echo 'Error: ' . $e->getMessage();
+											}
+											
+											}
+											
+		
+										elseif ($hh>$ttmax){
+												
+											
+											try {
+												$tweet = $twitter->send('Humi High'); // you can add $imagePath as second argument
+											
+											} catch (TwitterException $e) {
+												echo 'Error: ' . $e->getMessage();
+											}
+										
+										}
+
+									
+								}
+									
+								
+								
+								
+								//echo "<script type='text/javascript'>window.location.href = \"/Dropbox/Test/pages/admin.php?day=$count \";</script>";
+								//echo "<script type='text/javascript'>window.location.href = \"/Dropbox/Test/pages/admin.php?day=$count \";</script>";
+							}
+							
+							
+							else
+							{
+							
+								echo "Error Save [".$strSQL."]";
+							}
+							
+						}
+		
+				}
+				
+		}
+			
+			
+	?>	
